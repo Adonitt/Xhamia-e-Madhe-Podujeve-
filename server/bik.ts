@@ -1,4 +1,7 @@
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
+// PDF.js uses this module as its fake worker in Node; import it explicitly so
+// serverless bundlers include it alongside pdf.mjs.
+import 'pdfjs-dist/legacy/build/pdf.worker.mjs'
 import type { DailyPrayerTimes } from '../src/config'
 
 export const BIK_YEAR = 2026

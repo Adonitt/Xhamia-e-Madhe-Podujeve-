@@ -13,7 +13,29 @@ export const pageSlugs: Record<Locale, Record<PageKey, string>> = {
 }
 
 export const pagePath = (locale: Locale, page: PageKey) =>
-  `/${locale}${pageSlugs[locale][page] ? `/${pageSlugs[locale][page]}` : ''}`
+  page === 'home' ? (locale === 'sq' ? '/' : '/?lang=en') : `/${pageSlugs[locale][page]}`
+
+export function resolveRoute(pathname: string, search = ''): { locale: Locale; page: PageKey; redirect?: string } {
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments.length === 0) {
+    return { locale: new URLSearchParams(search).get('lang') === 'en' ? 'en' : 'sq', page: 'home' }
+  }
+
+  if (segments[0] === 'sq' || segments[0] === 'en') {
+    const locale = segments[0]
+    const page = (Object.entries(pageSlugs[locale]).find(([, slug]) => slug === (segments[1] ?? ''))?.[0] ?? 'home') as PageKey
+    return { locale, page, redirect: pagePath(locale, page) }
+  }
+
+  if (segments.length === 1) {
+    for (const locale of ['sq', 'en'] as Locale[]) {
+      const page = (Object.entries(pageSlugs[locale]).find(([key, slug]) => key !== 'home' && slug === segments[0])?.[0]) as PageKey | undefined
+      if (page) return { locale, page }
+    }
+  }
+
+  return { locale: 'sq', page: 'home', redirect: '/' }
+}
 
 const sq = {
   language: 'Shqip', otherLanguage: 'English', city: 'Podujevë · Kosovë',

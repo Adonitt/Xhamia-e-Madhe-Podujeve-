@@ -2,6 +2,8 @@
 
 Website në React + TypeScript + Vite, në shqip dhe anglisht. Faqja përdor ilustrime origjinale derisa të shtohen fotografitë reale të xhamisë.
 
+Adresat kryesore janë `/` dhe `/orari` në shqip; për anglisht përdoren `/?lang=en` dhe `/prayer-times`. Adresat e mëparshme me `/sq` ose `/en` ridrejtohen automatikisht.
+
 ## Nisja lokale
 
 ```bash

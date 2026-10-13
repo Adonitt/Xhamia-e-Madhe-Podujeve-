@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Link, Navigate, useLocation } from 'react-router-dom'
-import { copy, pagePath, pageSlugs, type Locale, type PageKey } from './content'
+import { copy, pagePath, resolveRoute, type Locale, type PageKey } from './content'
 import { mosqueConfig, type DailyPrayerTimes, type PrayerKey } from './config'
 import { events, notices } from './data'
 import { formatCountdown, kosovoDateKey, nextPrayer } from './prayer'
@@ -76,7 +76,7 @@ function formattedToday(now: Date, locale: Locale) {
 function Header({ locale, page, t }: { locale: Locale; page: PageKey; t: Copy }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
-  useEffect(() => setOpen(false), [location.pathname])
+  useEffect(() => setOpen(false), [location.pathname, location.search])
   useEffect(() => {
     if (!open) return
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }
@@ -272,11 +272,8 @@ function Footer({ locale, t }: { locale: Locale; t: Copy }) {
   </div><div className="container footer-bottom"><span>© {new Date().getFullYear()} {mosqueConfig.name}. {t.copyright}</span><span>Podujevë · Kosovë</span></div></footer>
 }
 
-function SiteApp() {
+function SiteApp({ locale, page }: { locale: Locale; page: PageKey }) {
   const location = useLocation()
-  const segments = location.pathname.split('/').filter(Boolean)
-  const locale: Locale = segments[0] === 'en' ? 'en' : 'sq'
-  const page = (Object.entries(pageSlugs[locale]).find(([, slug]) => slug === (segments[1] ?? ''))?.[0] ?? 'home') as PageKey
   const t = copy[locale]
   const now = useClock()
   const todayKey = kosovoDateKey(now)
@@ -300,7 +297,7 @@ function SiteApp() {
       document.head.appendChild(alternate)
     }
     window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [locale, page, location.pathname, t])
+  }, [locale, page, location.pathname, location.search, t])
 
   return <>
     <Header locale={locale} page={page} t={t} />
@@ -326,10 +323,7 @@ export default function App() {
 
 function RoutesWrapper() {
   const location = useLocation()
-  const segments = location.pathname.split('/').filter(Boolean)
-  if (segments.length === 0) return <Navigate to="/sq" replace />
-  if (segments[0] !== 'sq' && segments[0] !== 'en') return <Navigate to="/sq" replace />
-  const locale = segments[0] as Locale
-  if (segments.length > 2 || !Object.values(pageSlugs[locale]).includes(segments[1] ?? '')) return <Navigate to={`/${locale}`} replace />
-  return <SiteApp />
+  const route = resolveRoute(location.pathname, location.search)
+  if (route.redirect) return <Navigate to={route.redirect} replace />
+  return <SiteApp locale={route.locale} page={route.page} />
 }

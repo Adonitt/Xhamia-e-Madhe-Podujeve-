@@ -23,8 +23,8 @@ export function kosovoDateKey(date: Date): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-export function todaySchedule(date: Date): DailyPrayerTimes | undefined {
-  return mosqueConfig.prayerTimes.find((item) => item.date === kosovoDateKey(date))
+export function todaySchedule(date: Date, schedules: DailyPrayerTimes[] = mosqueConfig.prayerTimes): DailyPrayerTimes | undefined {
+  return schedules.find((item) => item.date === kosovoDateKey(date))
 }
 
 export function isFriday(date: Date): boolean {
@@ -59,12 +59,12 @@ export type NextPrayer = {
   remainingSeconds: number
 }
 
-export function nextPrayer(now: Date): NextPrayer | null {
+export function nextPrayer(now: Date, schedules: DailyPrayerTimes[] = mosqueConfig.prayerTimes): NextPrayer | null {
   const currentDay = kosovoDateKey(now)
   const [year, month, day] = currentDay.split('-').map(Number)
   const nextDayDate = new Date(Date.UTC(year, month - 1, day + 1, 12))
   const nextDay = `${nextDayDate.getUTCFullYear()}-${String(nextDayDate.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDayDate.getUTCDate()).padStart(2, '0')}`
-  const candidates = mosqueConfig.prayerTimes
+  const candidates = schedules
     .filter((schedule) => schedule.date === currentDay || schedule.date === nextDay)
     .flatMap((schedule) => prayerOrder.map((key) => ({ schedule, key })))
     .map(({ schedule, key }) => ({

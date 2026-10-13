@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Link, Navigate, useLocation } from 'react-router-dom'
 import { copy, pagePath, pageSlugs, type Locale, type PageKey } from './content'
-import { mosqueConfig, type PrayerKey } from './config'
+import { mosqueConfig, type DailyPrayerTimes, type PrayerKey } from './config'
 import { events, notices } from './data'
-import { formatCountdown, kosovoDateKey, nextPrayer, todaySchedule } from './prayer'
+import { formatCountdown, kosovoDateKey, nextPrayer } from './prayer'
+import { useBikData } from './useBikData'
+import type { BikHoliday } from '../server/bik'
 
 type Copy = typeof copy.sq
 const navPages: PageKey[] = ['orari', 'aktivitetet', 'njoftimet', 'rreth', 'vizita']
@@ -106,23 +108,26 @@ function Header({ locale, page, t }: { locale: Locale; page: PageKey; t: Copy })
   </>
 }
 
-function PrayerCard({ locale, t, now, compact = false }: { locale: Locale; t: Copy; now: Date; compact?: boolean }) {
-  const next = nextPrayer(now)
-  return <div className={compact ? 'prayer-card prayer-card-compact' : 'prayer-card'}>
+function PrayerCard({ locale, t, now, schedules, status }: { locale: Locale; t: Copy; now: Date; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
+  const next = nextPrayer(now, schedules)
+  const hasToday = schedules.some((item) => item.date === kosovoDateKey(now))
+  const missingTitle = status === 'loading' ? t.scheduleLoading : hasToday ? t.dayComplete : t.schedulePending
+  const missingText = hasToday ? t.dayCompleteText : t.schedulePendingText
+  return <div className="prayer-card">
     <div className="prayer-card-top"><span className="eyebrow eyebrow-bronze"><span className="small-diamond" />{t.nextPrayer}</span><span className="card-orbit" aria-hidden="true">✦</span></div>
     {next ? <>
       <h2 className="prayer-card-title">{t.prayerNames[next.key]}</h2>
-      <div className="prayer-card-times"><div><small>{t.starts}</small><strong>{next.begins}</strong></div><div><small>{t.congregation}</small><strong>{next.congregation ?? '—'}</strong></div></div>
+      <div className="prayer-card-times"><div><small>{t.starts}</small><strong>{next.begins}</strong></div><div><small>{next.key === 'fajr' && schedules.find((item) => item.date === next.date)?.fajrAdhan ? t.adhan : t.congregation}</small><strong>{next.key === 'fajr' ? schedules.find((item) => item.date === next.date)?.fajrAdhan ?? next.congregation ?? '—' : next.congregation ?? '—'}</strong></div></div>
       <div className="countdown"><span>{t.remaining}</span><strong aria-live="off">{formatCountdown(next.remainingSeconds)}</strong></div>
     </> : <>
-      <h2 className="prayer-card-title pending-title">{t.schedulePending}</h2>
-      <p className="prayer-pending-text">{t.schedulePendingText}</p>
+      <h2 className="prayer-card-title pending-title">{missingTitle}</h2>
+      <p className="prayer-pending-text">{status === 'loading' ? '' : missingText}</p>
       <Link className="text-link light-link" to={pagePath(locale, 'orari')}>{t.viewTimes}<ArrowIcon /></Link>
     </>}
   </div>
 }
 
-function Hero({ locale, t, now }: { locale: Locale; t: Copy; now: Date }) {
+function Hero({ locale, t, now, schedules, status }: { locale: Locale; t: Copy; now: Date; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
   return <section className="hero">
     <div className="hero-pattern" aria-hidden="true" />
     <div className="container hero-grid">
@@ -136,7 +141,7 @@ function Hero({ locale, t, now }: { locale: Locale; t: Copy; now: Date }) {
         </div>
         <div className="hero-status"><span className="status-dot" />{t.heroCaption}</div>
       </div>
-      <div className="hero-visual">{mosqueConfig.heroPhotoUrl ? <img className="hero-photo" src={mosqueConfig.heroPhotoUrl} alt={locale === 'sq' ? 'Pamje e Xhamisë së Madhe në Podujevë' : 'The Grand Mosque in Podujevë'} /> : <ArchitectureArt />}<PrayerCard locale={locale} t={t} now={now} /></div>
+      <div className="hero-visual">{mosqueConfig.heroPhotoUrl ? <img className="hero-photo" src={mosqueConfig.heroPhotoUrl} alt={locale === 'sq' ? 'Pamje e Xhamisë së Madhe në Podujevë' : 'The Grand Mosque in Podujevë'} /> : <ArchitectureArt />}<PrayerCard locale={locale} t={t} now={now} schedules={schedules} status={status} /></div>
     </div>
     <div className="hero-bottom"><div className="container"><span>{t.city}</span><span>{formattedToday(now, locale)}</span></div></div>
   </section>
@@ -146,22 +151,23 @@ function SectionHeading({ eyebrow, title, intro, action }: { eyebrow: string; ti
   return <div className="section-heading"><div><span className="eyebrow"><span className="small-diamond" />{eyebrow}</span><h2>{title}</h2>{intro && <p>{intro}</p>}</div>{action}</div>
 }
 
-const prayerRows: Array<PrayerKey | 'sunrise'> = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
+const prayerRows: Array<PrayerKey | 'imsak' | 'sunrise'> = ['imsak', 'fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
 
-function PrayerTable({ locale, t, now }: { locale: Locale; t: Copy; now: Date }) {
-  const schedule = todaySchedule(now)
-  const next = nextPrayer(now)
+function PrayerTable({ locale, t, now, date, schedules, status }: { locale: Locale; t: Copy; now: Date; date: string; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
+  const schedule = schedules.find((item) => item.date === date)
+  const next = date === kosovoDateKey(now) ? nextPrayer(now, schedules) : null
   return <div className="schedule-wrap">
-    <div className="schedule-date">{formattedToday(now, locale)}</div>
-    <div className="table-scroll"><table className="schedule-table"><caption className="sr-only">{t.scheduleHeading}</caption><thead><tr><th scope="col">{locale === 'sq' ? 'Namazi' : 'Prayer'}</th><th scope="col">{t.starts}</th><th scope="col">{t.congregation}</th></tr></thead><tbody>
+    <div className="schedule-date">{formattedToday(new Date(`${date}T12:00:00Z`), locale)}</div>
+    <div className="table-scroll"><table className="schedule-table"><caption className="sr-only">{t.scheduleHeading}</caption><thead><tr><th scope="col">{locale === 'sq' ? 'Vakti' : 'Time'}</th><th scope="col">{t.starts}</th><th scope="col">{t.congregation}</th></tr></thead><tbody>
       {prayerRows.map((key) => {
         const active = next?.date === schedule?.date && next?.key === key
-        const begins = key === 'sunrise' ? schedule?.sunrise : schedule?.begins[key]
-        const congregation = key === 'sunrise' ? undefined : schedule?.congregation[key]
-        return <tr className={active ? 'next-row' : ''} key={key}><th scope="row">{t.prayerNames[key]}{active && <span className="row-next-dot" aria-label={t.nextPrayer} />}</th><td>{begins ?? '—'}</td><td>{congregation ?? '—'}</td></tr>
+        const begins = key === 'imsak' ? schedule?.imsak : key === 'sunrise' ? schedule?.sunrise : schedule?.begins[key]
+        const congregation = key === 'imsak' || key === 'sunrise' ? undefined : schedule?.congregation[key]
+        return <tr className={active ? 'next-row' : ''} key={key}><th scope="row">{key === 'imsak' ? t.imsak : t.prayerNames[key]}{active && <span className="row-next-dot" aria-label={t.nextPrayer} />}</th><td>{begins ?? '—'}{key === 'fajr' && schedule?.fajrAdhan && <small className="row-adhan">{t.adhan} {schedule.fajrAdhan}</small>}</td><td>{congregation ?? '—'}</td></tr>
       })}
     </tbody></table></div>
-    <p className="source-note">{schedule ? `${t.verified}: ${schedule.verifiedBy}` : t.sourceNote}</p>
+    <p className="source-note">{schedule ? (schedule.source === 'bik' ? t.bikSourceNote : `${t.verified}: ${schedule.verifiedBy}`) : status === 'loading' ? t.scheduleLoading : t.sourceNote}</p>
+    {schedule?.imsak && <p className="fajr-note">{t.fajrRule}</p>}
   </div>
 }
 
@@ -173,12 +179,41 @@ function FridayCard({ t }: { t: Copy }) {
   </div>
 }
 
-function ScheduleSection({ locale, t, now, full = false }: { locale: Locale; t: Copy; now: Date; full?: boolean }) {
+function ScheduleSection({ locale, t, now, date, onDateChange, schedules, status, sourceUrl, full = false }: { locale: Locale; t: Copy; now: Date; date: string; onDateChange: (value: string) => void; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error'; sourceUrl?: string; full?: boolean }) {
+  const shiftDate = (days: number) => {
+    const next = new Date(`${date}T12:00:00Z`)
+    next.setUTCDate(next.getUTCDate() + days)
+    const key = next.toISOString().slice(0, 10)
+    if (key >= '2026-01-01' && key <= '2026-12-31') onDateChange(key)
+  }
+  const chooseDate = (value: string) => {
+    if (value >= '2026-01-01' && value <= '2026-12-31') onDateChange(value)
+  }
   return <section className={full ? 'section section-schedule section-page' : 'section section-schedule'} id="schedule">
     <div className="container">
-      <SectionHeading eyebrow={t.today} title={t.scheduleHeading} intro={t.scheduleIntro} action={!full && <Link className="text-link" to={pagePath(locale, 'orari')}>{t.fullSchedule}<ArrowIcon /></Link>} />
-      <div className="schedule-grid"><PrayerTable locale={locale} t={t} now={now} /><FridayCard t={t} /></div>
-      <a className="source-link" href={mosqueConfig.bikCalendarUrl} target="_blank" rel="noopener noreferrer">{t.sourceBik}<ArrowIcon diagonal /></a>
+      <SectionHeading eyebrow={full ? t.scheduleYearEyebrow : t.today} title={full ? t.scheduleYearHeading : t.scheduleHeading} intro={full ? t.scheduleYearIntro : t.scheduleIntro} action={!full && <Link className="text-link" to={pagePath(locale, 'orari')}>{t.fullSchedule}<ArrowIcon /></Link>} />
+      {full && <div className="date-selector"><div><label htmlFor="prayer-date">{t.datePickerLabel}</label><span>{t.yearRange}</span></div><div className="date-controls"><button type="button" aria-label={locale === 'sq' ? 'Dita e mëparshme' : 'Previous day'} disabled={date <= '2026-01-01'} onClick={() => shiftDate(-1)}>‹</button><input id="prayer-date" type="date" min="2026-01-01" max="2026-12-31" value={date} onInput={(event) => chooseDate(event.currentTarget.value)} onChange={(event) => chooseDate(event.currentTarget.value)} /><button type="button" aria-label={locale === 'sq' ? 'Dita e ardhshme' : 'Next day'} disabled={date >= '2026-12-31'} onClick={() => shiftDate(1)}>›</button><button type="button" className="today-control" onClick={() => onDateChange(kosovoDateKey(now))}>{t.todayButton}</button></div></div>}
+      <div className="schedule-grid"><PrayerTable locale={locale} t={t} now={now} date={date} schedules={schedules} status={status} /><FridayCard t={t} /></div>
+      <a className="source-link" href={sourceUrl ?? mosqueConfig.bikCalendarUrl} target="_blank" rel="noopener noreferrer">{t.sourceBik}<ArrowIcon diagonal /></a>
+    </div>
+  </section>
+}
+
+function HolidaySection({ locale, t, now, holidays, status, sourceUrl }: { locale: Locale; t: Copy; now: Date; holidays: BikHoliday[]; status: 'loading' | 'ready' | 'error'; sourceUrl?: string }) {
+  const today = kosovoDateKey(now)
+  const nextHoliday = holidays.find((item) => item.date >= today)
+  return <section className="section section-holidays">
+    <div className="container">
+      <SectionHeading eyebrow="BIK · 2026" title={t.holidayTitle} intro={t.holidayIntro} />
+      {nextHoliday && <div className="holiday-featured" aria-label={t.holidayNext}>
+        <div>
+          <span className="eyebrow eyebrow-bronze"><span className="small-diamond" />{nextHoliday.date === today ? t.holidayToday : t.holidayNext}</span>
+          <h3>{locale === 'sq' ? nextHoliday.nameSq : nextHoliday.nameEn}</h3>
+        </div>
+        <time dateTime={nextHoliday.date}>{formattedToday(new Date(`${nextHoliday.date}T12:00:00Z`), locale)}</time>
+      </div>}
+      <div className="holiday-grid">{holidays.length ? holidays.map((item) => <article className="holiday-card" key={item.date}><time dateTime={item.date}>{formattedToday(new Date(`${item.date}T12:00:00Z`), locale)}</time><h3>{locale === 'sq' ? item.nameSq : item.nameEn}</h3></article>) : <p className="holiday-empty">{status === 'loading' ? t.scheduleLoading : t.holidayEmpty}</p>}</div>
+      <a className="source-link" href={sourceUrl ?? mosqueConfig.bikCalendarUrl} target="_blank" rel="noopener noreferrer">{t.sourceBik}<ArrowIcon diagonal /></a>
     </div>
   </section>
 }
@@ -244,6 +279,12 @@ function SiteApp() {
   const page = (Object.entries(pageSlugs[locale]).find(([, slug]) => slug === (segments[1] ?? ''))?.[0] ?? 'home') as PageKey
   const t = copy[locale]
   const now = useClock()
+  const todayKey = kosovoDateKey(now)
+  const [selectedDate, setSelectedDate] = useState(todayKey)
+  useEffect(() => setSelectedDate(todayKey), [page, todayKey])
+  const requestedDate = page === 'orari' ? selectedDate : todayKey
+  const { data: bikData, status: bikStatus } = useBikData(requestedDate)
+  const schedules = bikData ? [...mosqueConfig.prayerTimes, bikData.schedule] : mosqueConfig.prayerTimes
 
   useEffect(() => {
     document.documentElement.lang = locale
@@ -264,9 +305,9 @@ function SiteApp() {
   return <>
     <Header locale={locale} page={page} t={t} />
     <main id="main">
-      {page === 'home' ? <><Hero locale={locale} t={t} now={now} /><ScheduleSection locale={locale} t={t} now={now} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
+      {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
         <PageBanner t={t} page={page} />
-        {page === 'orari' && <ScheduleSection locale={locale} t={t} now={now} full />}
+        {page === 'orari' && <><ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} full /><HolidaySection locale={locale} t={t} now={now} holidays={bikData?.holidays ?? []} status={bikStatus} sourceUrl={bikData?.sourceUrl} /></>}
         {page === 'aktivitetet' && <ProgrammeGrid locale={locale} t={t} full />}
         {page === 'njoftimet' && <NoticesSection locale={locale} t={t} full />}
         {page === 'rreth' && <AboutSection locale={locale} t={t} full />}

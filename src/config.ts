@@ -1,12 +1,15 @@
 export type PrayerKey = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha'
 
 export type DailyPrayerTimes = {
-  /** YYYY-MM-DD in Kosovo local time. Publish only times confirmed by the mosque. */
+  /** YYYY-MM-DD in Kosovo local time. */
   date: string
   begins: Record<PrayerKey, string>
   sunrise: string
+  imsak?: string
+  fajrAdhan?: string
   congregation: Partial<Record<PrayerKey, string>>
   verifiedBy: string
+  source?: 'bik'
 }
 
 export const mosqueConfig = {
@@ -24,6 +27,6 @@ export const mosqueConfig = {
   /** Add the confirmed Friday khutbah and congregation times. */
   friday: null as null | { khutbah: string; congregation: string },
   bikCalendarUrl: 'https://bislame.net/takvimi/',
-  /** Add only verified daily records supplied/approved by the mosque. */
+  /** Optional mosque-approved overrides; BIK daily times load automatically through /api/prayer-times. */
   prayerTimes: [] as DailyPrayerTimes[],
 }

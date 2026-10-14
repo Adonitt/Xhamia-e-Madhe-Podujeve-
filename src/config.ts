@@ -14,13 +14,13 @@ export type DailyPrayerTimes = {
 export const mosqueConfig = {
   name: 'Xhamia e Madhe',
   city: 'Podujevë',
-  address: 'Rruga Merqezi, Podujevë, Kosovë',
-  addressEn: 'Rruga Merqezi, Podujevë, Kosovo',
+  address: 'W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000, Kosovë',
+  addressEn: 'W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000, Kosovo',
   /** Add real mosque photos to public/photos, then set paths such as '/photos/ballina.jpg'. */
   heroPhotoUrl: null as string | null,
   aboutPhotoUrl: null as string | null,
-  /** Replace with the exact, mosque-confirmed map pin before public launch. */
-  mapUrl: 'https://www.google.com/maps/search/?api=1&query=Xhamia+e+Madhe+Podujeve+Rruga+Merqezi',
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=W53X%2BVJJ%2C%20Rruga%20Ali%20Ajeti%2C%20Podujev%C3%AB%2011000%2C%20Kosovo',
+  mapEmbedUrl: 'https://www.google.com/maps?q=W53X%2BVJJ%2C%20Rruga%20Ali%20Ajeti%2C%20Podujev%C3%AB%2011000%2C%20Kosovo&output=embed',
   /** Add only the official, mosque-confirmed donation URL. */
   donationUrl: null as string | null,
   bikCalendarUrl: 'https://bislame.net/takvimi/',

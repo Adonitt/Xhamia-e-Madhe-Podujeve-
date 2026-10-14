@@ -91,9 +91,9 @@ const sq = {
   donateText: 'Kontributet ndihmojnë aktivitetet dhe kujdesin e përditshëm për xhaminë. Lidhja e dhurimit do të shfaqet vetëm pasi të verifikohet kanali zyrtar.',
   donateButton: 'Kanali zyrtar së shpejti', donateActive: 'Kontribuo përmes kanalit zyrtar',
   visitEyebrow: 'NA VIZITONI', visitTitle: 'Ju mirëpresim në Podujevë',
-  visitText: 'Xhamia ndodhet në rrugën Merqezi. Para udhëtimit, verifikoni pikën e saktë në hartë; lidhja përfundimtare do të vendoset pas konfirmimit nga xhamia.',
+  visitText: 'Xhamia ndodhet në rrugën Ali Ajeti, në pikën W53X+VJJ. Përdorni hartën për udhëzime të sakta drejt lokacionit.',
   addressLabel: 'ADRESA', accessLabel: 'VIZITA', accessText: 'Për vizita në grup dhe orare të aktiviteteve, interesohuni drejtpërdrejt në xhami.',
-  mapButton: 'Kërko në hartë', mapNote: 'Pika e saktë e hartës është në pritje të konfirmimit.',
+  mapButton: 'Hape në Google Maps', mapNote: 'Lokacioni: W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000.',
   footerText: 'Një vend për namaz, dije dhe bashkësi në Podujevë.',
   footerExplore: 'Eksploro', footerInfo: 'Informata', copyright: 'Të gjitha të drejtat e rezervuara.',
   pageTitles: {
@@ -161,9 +161,9 @@ const en: typeof sq = {
   donateText: 'Contributions support the mosque’s activities and daily care. A donation link will appear only after the official channel is verified.',
   donateButton: 'Official channel coming soon', donateActive: 'Give through the official channel',
   visitEyebrow: 'VISIT US', visitTitle: 'We welcome you to Podujevë',
-  visitText: 'The mosque is on Merqezi Street. Please verify the exact map location before travelling; the final map link will be added after confirmation by the mosque.',
+  visitText: 'The mosque is on Ali Ajeti Street at plus code W53X+VJJ. Use the map for precise directions to the location.',
   addressLabel: 'ADDRESS', accessLabel: 'VISITS', accessText: 'For group visits and activity times, please ask directly at the mosque.',
-  mapButton: 'Search on map', mapNote: 'The exact map pin is awaiting confirmation.',
+  mapButton: 'Open in Google Maps', mapNote: 'Location: W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000.',
   footerText: 'A place for prayer, learning and community in Podujevë.',
   footerExplore: 'Explore', footerInfo: 'Information', copyright: 'All rights reserved.',
   pageTitles: {

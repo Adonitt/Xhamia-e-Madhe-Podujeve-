@@ -7,7 +7,6 @@ export type DailyPrayerTimes = {
   sunrise: string
   imsak?: string
   fajrAdhan?: string
-  congregation: Partial<Record<PrayerKey, string>>
   verifiedBy: string
   source?: 'bik'
 }
@@ -24,8 +23,6 @@ export const mosqueConfig = {
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=Xhamia+e+Madhe+Podujeve+Rruga+Merqezi',
   /** Add only the official, mosque-confirmed donation URL. */
   donationUrl: null as string | null,
-  /** Add the confirmed Friday khutbah and congregation times. */
-  friday: null as null | { khutbah: string; congregation: string },
   bikCalendarUrl: 'https://bislame.net/takvimi/',
   /** Optional mosque-approved overrides; BIK daily times load automatically through /api/prayer-times. */
   prayerTimes: [] as DailyPrayerTimes[],

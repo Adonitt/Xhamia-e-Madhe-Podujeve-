@@ -7,6 +7,7 @@ it('reads the BIK day without a city minute adjustment', async () => {
     begins: { fajr: '05:38', dhuhr: '12:26', asr: '15:36', maghrib: '18:06', isha: '19:36' },
     imsak: '05:08', fajrAdhan: '06:08', sunrise: '06:38',
   })
+  expect(result.schedule).not.toHaveProperty('congregation')
   expect(Object.keys(result).sort()).toEqual(['schedule', 'sourceUrl'])
 })
 

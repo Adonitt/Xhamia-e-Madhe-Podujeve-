@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { mosqueConfig, type DailyPrayerTimes } from './config'
-import { formatCountdown, isFriday, kosovoDateKey, nextPrayer, todaySchedule } from './prayer'
+import { formatCountdown, fridayPrayerTime, isFriday, isFridayDate, kosovoDateKey, nextPrayer, todaySchedule } from './prayer'
 
 const day = (date: string): DailyPrayerTimes => ({
   date,
   begins: { fajr: '05:00', dhuhr: '12:30', asr: '15:30', maghrib: '18:00', isha: '19:30' },
   sunrise: '06:30',
-  congregation: { fajr: '05:20', dhuhr: '12:45', asr: '15:45', maghrib: '18:05', isha: '19:45' },
   verifiedBy: 'Test',
 })
 
@@ -16,6 +15,27 @@ describe('Kosovo prayer dates', () => {
   it('uses the Kosovo calendar day and Friday at local midnight', () => {
     expect(kosovoDateKey(new Date('2026-10-15T22:30:00Z'))).toBe('2026-10-16')
     expect(isFriday(new Date('2026-10-15T22:30:00Z'))).toBe(true)
+    expect(isFridayDate('2026-10-16')).toBe(true)
+  })
+
+  it('uses the fixed Friday prayer time across both clock changes', () => {
+    expect(fridayPrayerTime('2026-03-27')).toBe('12:00')
+    expect(fridayPrayerTime('2026-04-03')).toBe('13:00')
+    expect(fridayPrayerTime('2026-10-23')).toBe('13:00')
+    expect(fridayPrayerTime('2026-10-30')).toBe('12:00')
+  })
+
+  it('shows Jumu’ah as the next prayer on Friday at its fixed time', () => {
+    mosqueConfig.prayerTimes.push(day('2026-10-16'))
+    const summer = nextPrayer(new Date('2026-10-16T10:45:00Z'))
+    expect(summer).toMatchObject({ key: 'jumuah', begins: '13:00', remainingSeconds: 15 * 60 })
+    expect(summer).not.toHaveProperty('congregation')
+
+    const winterDay = day('2026-11-06')
+    winterDay.begins.dhuhr = '11:30'
+    mosqueConfig.prayerTimes.push(winterDay)
+    const winter = nextPrayer(new Date('2026-11-06T10:45:00Z'))
+    expect(winter).toMatchObject({ key: 'jumuah', begins: '12:00', remainingSeconds: 15 * 60 })
   })
 
   it('shows an honest pending state when no verified day exists', () => {

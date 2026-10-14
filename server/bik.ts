@@ -76,7 +76,6 @@ export async function getBikDay(date: string): Promise<DailyPrayerTimes> {
     sunrise: clock(sunrise),
     imsak: clock(imsak),
     fajrAdhan: clock(sunrise - 30),
-    congregation: {},
     verifiedBy: 'Takvimi 2026 i BIK-ut',
     source: 'bik',
   }

@@ -27,7 +27,7 @@ Sipas rregullit të dhënë nga xhamia, **sabahu shfaqet 30 minuta pas imsakut**
 
 PDF-ja nuk përfshihet në aplikacionin e ndërtuar. Funksioni `server/bik.ts` e lexon nga burimi zyrtar, ndërsa `api/prayer-times.ts` jep një ditë të zgjedhur dhe listën e datave të rëndësishme. Nëse burimi nuk është i arritshëm, faqja shfaq gjendje gabimi dhe lidhjen te Takvimi. Për vitin 2027 duhet vendosur botimi përkatës dhe përditësuar parseri/datat.
 
-Publikimi kërkon një host që ekzekuton funksionin `/api/prayer-times`. Për **Netlify me repository Git**, `netlify.toml` vendos komandën `npm run build`, publikon `dist/`, ndërton funksionin në `netlify/functions/` dhe e lidh me `/api/prayer-times`. `vercel.json` mbetet për Vercel. Vetëm ngarkimi i skedarëve statikë të `dist/` nuk e përfshin funksionin. Pas deploy-it, hapni `https://<domeni>/api/prayer-times?date=2026-10-13` dhe kontrolloni që të kthehet JSON me `schedule` dhe `holidays`. Para publikimit publik, sqaroni me botuesin kushtet e ripërdorimit të të dhënave të Takvimit.
+Publikimi kërkon një host që ekzekuton funksionin `/api/prayer-times`. Për **Netlify me repository Git**, `netlify.toml` vendos komandën `npm run build`, publikon `dist/`, ndërton funksionin në `netlify/functions/` dhe e lidh me `/api/prayer-times`. `vercel.json` mbetet për Vercel. Vetëm ngarkimi i skedarëve statikë të `dist/` nuk e përfshin funksionin. Pas deploy-it, hapni `https://<domeni>/api/prayer-times?date=2026-10-13` dhe kontrolloni që të kthehet JSON me `schedule`. Para publikimit publik, sqaroni me botuesin kushtet e ripërdorimit të të dhënave të Takvimit.
 
 ## Të dhënat e xhamisë
 

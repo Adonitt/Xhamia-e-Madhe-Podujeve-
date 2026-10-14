@@ -7,8 +7,7 @@ import type { DailyPrayerTimes } from '../src/config'
 export const BIK_YEAR = 2026
 export const BIK_PDF_URL = 'https://dituriaislame.com/wp-content/uploads/2026/01/takvimi2026vaktet.pdf'
 
-export type BikHoliday = { date: string; nameSq: string; nameEn: string }
-export type BikDayResponse = { schedule: DailyPrayerTimes; holidays: BikHoliday[]; sourceUrl: string }
+export type BikDayResponse = { schedule: DailyPrayerTimes; sourceUrl: string }
 
 async function loadPdf() {
   const response = await fetch(BIK_PDF_URL, { signal: AbortSignal.timeout(12000) })
@@ -83,40 +82,6 @@ export async function getBikDay(date: string): Promise<DailyPrayerTimes> {
   }
 }
 
-const holidayEnglish: Record<string, string> = {
-  '2026-01-15': 'Night of Miraj',
-  '2026-02-02': 'Night of Bara’at',
-  '2026-02-19': 'First day of Ramadan',
-  '2026-03-07': 'Day of Badr',
-  '2026-03-16': 'Night of Qadr',
-  '2026-03-19': 'Eid al-Fitr Eve',
-  '2026-03-20': 'Eid al-Fitr',
-  '2026-05-26': 'Eid al-Adha Eve',
-  '2026-05-27': 'Eid al-Adha',
-  '2026-06-16': 'Hijri New Year 1448',
-  '2026-06-25': 'Day of Ashura',
-  '2026-08-24': 'Mawlid Night',
-  '2026-12-10': 'Night of Raghaib',
-}
-
-export async function getBikHolidays(): Promise<BikHoliday[]> {
-  const pdf = await documentForYear()
-  const page = await pdf.getPage(7)
-  const { items } = await page.getTextContent()
-  const holidays: BikHoliday[] = []
-  for (const item of items) {
-    if (!('str' in item)) continue
-    const match = /^-\s*(.+?)\s*\.{3,}\s*(\d{2})\.(\d{2})\.(2026)\s*-/.exec(item.str.trim())
-    if (!match) continue
-    const date = `${match[4]}-${match[3]}-${match[2]}`
-    const nameSq = match[1].trim()
-    holidays.push({ date, nameSq, nameEn: holidayEnglish[date] ?? nameSq })
-  }
-  if (holidays.length !== 13) throw new Error('BIK holiday list could not be validated')
-  return holidays.sort((a, b) => a.date.localeCompare(b.date))
-}
-
 export async function getBikDate(date: string): Promise<BikDayResponse> {
-  const [schedule, holidays] = await Promise.all([getBikDay(date), getBikHolidays()])
-  return { schedule, holidays, sourceUrl: BIK_PDF_URL }
+  return { schedule: await getBikDay(date), sourceUrl: BIK_PDF_URL }
 }

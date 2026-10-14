@@ -17,7 +17,7 @@ export function useBikData(date: string) {
         return response.json() as Promise<BikDayResponse>
       })
       .then((result) => {
-        if (result.schedule?.date !== date || !Array.isArray(result.holidays)) throw new Error('Unexpected prayer data')
+        if (result.schedule?.date !== date) throw new Error('Unexpected prayer data')
         setData(result)
         setStatus('ready')
       })

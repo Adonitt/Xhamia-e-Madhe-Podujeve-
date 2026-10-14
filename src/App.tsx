@@ -5,7 +5,6 @@ import { mosqueConfig, type DailyPrayerTimes, type PrayerKey } from './config'
 import { events, notices } from './data'
 import { formatCountdown, kosovoDateKey, nextPrayer } from './prayer'
 import { useBikData } from './useBikData'
-import type { BikHoliday } from '../server/bik'
 
 type Copy = typeof copy.sq
 const navPages: PageKey[] = ['orari', 'aktivitetet', 'njoftimet', 'rreth', 'vizita']
@@ -199,25 +198,6 @@ function ScheduleSection({ locale, t, now, date, onDateChange, schedules, status
   </section>
 }
 
-function HolidaySection({ locale, t, now, holidays, status, sourceUrl }: { locale: Locale; t: Copy; now: Date; holidays: BikHoliday[]; status: 'loading' | 'ready' | 'error'; sourceUrl?: string }) {
-  const today = kosovoDateKey(now)
-  const nextHoliday = holidays.find((item) => item.date >= today)
-  return <section className="section section-holidays">
-    <div className="container">
-      <SectionHeading eyebrow="BIK · 2026" title={t.holidayTitle} intro={t.holidayIntro} />
-      {nextHoliday && <div className="holiday-featured" aria-label={t.holidayNext}>
-        <div>
-          <span className="eyebrow eyebrow-bronze"><span className="small-diamond" />{nextHoliday.date === today ? t.holidayToday : t.holidayNext}</span>
-          <h3>{locale === 'sq' ? nextHoliday.nameSq : nextHoliday.nameEn}</h3>
-        </div>
-        <time dateTime={nextHoliday.date}>{formattedToday(new Date(`${nextHoliday.date}T12:00:00Z`), locale)}</time>
-      </div>}
-      <div className="holiday-grid">{holidays.length ? holidays.map((item) => <article className="holiday-card" key={item.date}><time dateTime={item.date}>{formattedToday(new Date(`${item.date}T12:00:00Z`), locale)}</time><h3>{locale === 'sq' ? item.nameSq : item.nameEn}</h3></article>) : <p className="holiday-empty">{status === 'loading' ? t.scheduleLoading : t.holidayEmpty}</p>}</div>
-      <a className="source-link" href={sourceUrl ?? mosqueConfig.bikCalendarUrl} target="_blank" rel="noopener noreferrer">{t.sourceBik}<ArrowIcon diagonal /></a>
-    </div>
-  </section>
-}
-
 function ProgrammeGrid({ locale, t, full = false }: { locale: Locale; t: Copy; full?: boolean }) {
   const upcoming = events.filter((item) => item.date >= kosovoDateKey(new Date())).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
   return <section className={full ? 'section section-programmes section-page' : 'section section-programmes'}>
@@ -304,7 +284,7 @@ function SiteApp({ locale, page }: { locale: Locale; page: PageKey }) {
     <main id="main">
       {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
         <PageBanner t={t} page={page} />
-        {page === 'orari' && <><ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} full /><HolidaySection locale={locale} t={t} now={now} holidays={bikData?.holidays ?? []} status={bikStatus} sourceUrl={bikData?.sourceUrl} /></>}
+        {page === 'orari' && <ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} full />}
         {page === 'aktivitetet' && <ProgrammeGrid locale={locale} t={t} full />}
         {page === 'njoftimet' && <NoticesSection locale={locale} t={t} full />}
         {page === 'rreth' && <AboutSection locale={locale} t={t} full />}

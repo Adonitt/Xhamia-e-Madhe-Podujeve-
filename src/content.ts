@@ -93,7 +93,7 @@ const sq = {
   visitEyebrow: 'NA VIZITONI', visitTitle: 'Ju mirëpresim në Podujevë',
   visitText: 'Xhamia ndodhet në rrugën Ali Ajeti, në pikën W53X+VJJ. Përdorni hartën për udhëzime të sakta drejt lokacionit.',
   addressLabel: 'ADRESA', accessLabel: 'VIZITA', accessText: 'Për vizita në grup dhe orare të aktiviteteve, interesohuni drejtpërdrejt në xhami.',
-  mapButton: 'Hape në Google Maps', mapNote: 'Lokacioni: W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000.',
+  mapButton: 'Hape në Google Maps', mapNote: 'Koordinatat: 42.90500881613754, 21.199008307858158 · W53X+VJJ.',
   footerText: 'Një vend për namaz, dije dhe bashkësi në Podujevë.',
   footerExplore: 'Eksploro', footerInfo: 'Informata', copyright: 'Të gjitha të drejtat e rezervuara.',
   pageTitles: {
@@ -163,7 +163,7 @@ const en: typeof sq = {
   visitEyebrow: 'VISIT US', visitTitle: 'We welcome you to Podujevë',
   visitText: 'The mosque is on Ali Ajeti Street at plus code W53X+VJJ. Use the map for precise directions to the location.',
   addressLabel: 'ADDRESS', accessLabel: 'VISITS', accessText: 'For group visits and activity times, please ask directly at the mosque.',
-  mapButton: 'Open in Google Maps', mapNote: 'Location: W53X+VJJ, Rruga Ali Ajeti, Podujevë 11000.',
+  mapButton: 'Open in Google Maps', mapNote: 'Coordinates: 42.90500881613754, 21.199008307858158 · W53X+VJJ.',
   footerText: 'A place for prayer, learning and community in Podujevë.',
   footerExplore: 'Explore', footerInfo: 'Information', copyright: 'All rights reserved.',
   pageTitles: {

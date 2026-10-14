@@ -19,8 +19,8 @@ export const mosqueConfig = {
   /** Add real mosque photos to public/photos, then set paths such as '/photos/ballina.jpg'. */
   heroPhotoUrl: null as string | null,
   aboutPhotoUrl: null as string | null,
-  mapUrl: 'https://www.google.com/maps/search/?api=1&query=W53X%2BVJJ%2C%20Rruga%20Ali%20Ajeti%2C%20Podujev%C3%AB%2011000%2C%20Kosovo',
-  mapEmbedUrl: 'https://www.google.com/maps?q=W53X%2BVJJ%2C%20Rruga%20Ali%20Ajeti%2C%20Podujev%C3%AB%2011000%2C%20Kosovo&output=embed',
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=42.90500881613754%2C21.199008307858158',
+  mapEmbedUrl: 'https://www.google.com/maps?q=42.90500881613754%2C21.199008307858158&output=embed&z=17',
   /** Add only the official, mosque-confirmed donation URL. */
   donationUrl: null as string | null,
   bikCalendarUrl: 'https://bislame.net/takvimi/',

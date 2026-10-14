@@ -3,8 +3,10 @@ import { BrowserRouter, Link, Navigate, useLocation } from 'react-router-dom'
 import { copy, pagePath, resolveRoute, type Locale, type PageKey } from './content'
 import { mosqueConfig, type DailyPrayerTimes } from './config'
 import { events, notices } from './data'
-import { FRIDAY_SUMMER_TIME, FRIDAY_WINTER_TIME, formatCountdown, fridayPrayerTime, isFridayDate, kosovoDateKey, nextPrayer, type PrayerEventKey } from './prayer'
+import { formatCountdown, isFridayDate, kosovoDateKey, nextPrayer, type PrayerEventKey } from './prayer'
+import { fridayDateOnOrAfter, fridayPrayerTimeFromDhuhr } from './friday'
 import { useBikData } from './useBikData'
+import type { BikFriday } from '../server/bik'
 
 type Copy = typeof copy.sq
 const navPages: PageKey[] = ['orari', 'aktivitetet', 'njoftimet', 'rreth', 'vizita']
@@ -156,13 +158,14 @@ const prayerRows: Array<PrayerEventKey | 'imsak' | 'sunrise'> = ['imsak', 'fajr'
 function PrayerTable({ locale, t, now, date, schedules, status }: { locale: Locale; t: Copy; now: Date; date: string; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
   const schedule = schedules.find((item) => item.date === date)
   const next = date === kosovoDateKey(now) ? nextPrayer(now, schedules) : null
-  const rows = isFridayDate(date) ? [...prayerRows.slice(0, 4), 'jumuah' as const, ...prayerRows.slice(4)] : prayerRows
+  const fridayTime = schedule && isFridayDate(date) ? fridayPrayerTimeFromDhuhr(schedule.begins.dhuhr) : null
+  const rows = fridayTime ? [...prayerRows.slice(0, 4), 'jumuah' as const, ...prayerRows.slice(4)] : prayerRows
   return <div className="schedule-wrap">
     <div className="schedule-date">{formattedToday(new Date(`${date}T12:00:00Z`), locale)}</div>
     <div className="table-scroll"><table className="schedule-table"><caption className="sr-only">{t.scheduleHeading}</caption><thead><tr><th scope="col">{locale === 'sq' ? 'Vakti' : 'Time'}</th><th scope="col">{t.starts}</th></tr></thead><tbody>
       {rows.map((key) => {
         const active = next?.date === schedule?.date && next?.key === key
-        const begins = key === 'imsak' ? schedule?.imsak : key === 'sunrise' ? schedule?.sunrise : key === 'jumuah' ? fridayPrayerTime(date) : schedule?.begins[key]
+        const begins = key === 'imsak' ? schedule?.imsak : key === 'sunrise' ? schedule?.sunrise : key === 'jumuah' ? fridayTime : schedule?.begins[key]
         return <tr className={active ? 'next-row' : ''} key={key}><th scope="row">{key === 'imsak' ? t.imsak : key === 'jumuah' ? t.fridayTitle : t.prayerNames[key]}{active && <span className="row-next-dot" aria-label={t.nextPrayer} />}</th><td>{begins ?? '—'}{key === 'fajr' && schedule?.fajrAdhan && <small className="row-adhan">{t.adhan} {schedule.fajrAdhan}</small>}</td></tr>
       })}
     </tbody></table></div>
@@ -171,17 +174,20 @@ function PrayerTable({ locale, t, now, date, schedules, status }: { locale: Loca
   </div>
 }
 
-function FridayCard({ t, date }: { t: Copy; date: string }) {
-  const selectedTime = fridayPrayerTime(date)
+function FridayCard({ locale, t, date, friday, status }: { locale: Locale; t: Copy; date: string; friday: BikFriday | null; status: 'loading' | 'ready' | 'error' }) {
+  const shownFriday = friday?.date === fridayDateOnOrAfter(date) ? friday : null
   return <div className="friday-card">
     <div className="friday-top"><span className="eyebrow eyebrow-bronze"><span className="small-diamond" />{t.fridayEyebrow}</span><span className="friday-star" aria-hidden="true">✧</span></div>
     <h3>{t.fridayTitle}</h3>
-    <div className="friday-times"><div className={selectedTime === FRIDAY_SUMMER_TIME ? 'active' : ''}><span>{t.fridaySummer}</span><strong>{FRIDAY_SUMMER_TIME}</strong>{selectedTime === FRIDAY_SUMMER_TIME && <em>{t.fridayForDate}</em>}</div><div className={selectedTime === FRIDAY_WINTER_TIME ? 'active' : ''}><span>{t.fridayWinter}</span><strong>{FRIDAY_WINTER_TIME}</strong>{selectedTime === FRIDAY_WINTER_TIME && <em>{t.fridayForDate}</em>}</div></div>
-    <p>{t.fridayFixedNote}</p>
+    {shownFriday ? <>
+      <time className="friday-date" dateTime={shownFriday.date}>{formattedToday(new Date(`${shownFriday.date}T12:00:00Z`), locale)}</time>
+      <div className="friday-single-time"><span>{t.fridayTimeLabel}</span><strong>{shownFriday.prayerTime}</strong></div>
+      <p>{t.fridayFixedNote}</p>
+    </> : <p className="friday-unavailable">{status === 'loading' ? t.scheduleLoading : t.fridayUnavailable}</p>}
   </div>
 }
 
-function ScheduleSection({ locale, t, now, date, onDateChange, schedules, status, sourceUrl, full = false }: { locale: Locale; t: Copy; now: Date; date: string; onDateChange: (value: string) => void; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error'; sourceUrl?: string; full?: boolean }) {
+function ScheduleSection({ locale, t, now, date, onDateChange, schedules, friday, status, sourceUrl, full = false }: { locale: Locale; t: Copy; now: Date; date: string; onDateChange: (value: string) => void; schedules: DailyPrayerTimes[]; friday: BikFriday | null; status: 'loading' | 'ready' | 'error'; sourceUrl?: string; full?: boolean }) {
   const shiftDate = (days: number) => {
     const next = new Date(`${date}T12:00:00Z`)
     next.setUTCDate(next.getUTCDate() + days)
@@ -195,7 +201,7 @@ function ScheduleSection({ locale, t, now, date, onDateChange, schedules, status
     <div className="container">
       <SectionHeading eyebrow={full ? t.scheduleYearEyebrow : t.today} title={full ? t.scheduleYearHeading : t.scheduleHeading} intro={full ? t.scheduleYearIntro : t.scheduleIntro} action={!full && <Link className="text-link" to={pagePath(locale, 'orari')}>{t.fullSchedule}<ArrowIcon /></Link>} />
       {full && <div className="date-selector"><div><label htmlFor="prayer-date">{t.datePickerLabel}</label><span>{t.yearRange}</span></div><div className="date-controls"><button type="button" aria-label={locale === 'sq' ? 'Dita e mëparshme' : 'Previous day'} disabled={date <= '2026-01-01'} onClick={() => shiftDate(-1)}>‹</button><input id="prayer-date" type="date" min="2026-01-01" max="2026-12-31" value={date} onInput={(event) => chooseDate(event.currentTarget.value)} onChange={(event) => chooseDate(event.currentTarget.value)} /><button type="button" aria-label={locale === 'sq' ? 'Dita e ardhshme' : 'Next day'} disabled={date >= '2026-12-31'} onClick={() => shiftDate(1)}>›</button><button type="button" className="today-control" onClick={() => onDateChange(kosovoDateKey(now))}>{t.todayButton}</button></div></div>}
-      <div className="schedule-grid"><PrayerTable locale={locale} t={t} now={now} date={date} schedules={schedules} status={status} /><FridayCard t={t} date={date} /></div>
+      <div className="schedule-grid"><PrayerTable locale={locale} t={t} now={now} date={date} schedules={schedules} status={status} /><FridayCard locale={locale} t={t} date={date} friday={friday} status={status} /></div>
       <a className="source-link" href={sourceUrl ?? mosqueConfig.bikCalendarUrl} target="_blank" rel="noopener noreferrer">{t.sourceBik}<ArrowIcon diagonal /></a>
     </div>
   </section>
@@ -285,9 +291,9 @@ function SiteApp({ locale, page }: { locale: Locale; page: PageKey }) {
   return <>
     <Header locale={locale} page={page} t={t} />
     <main id="main">
-      {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
+      {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} friday={bikData?.friday ?? null} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
         <PageBanner t={t} page={page} />
-        {page === 'orari' && <ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} status={bikStatus} sourceUrl={bikData?.sourceUrl} full />}
+        {page === 'orari' && <ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} friday={bikData?.friday ?? null} status={bikStatus} sourceUrl={bikData?.sourceUrl} full />}
         {page === 'aktivitetet' && <ProgrammeGrid locale={locale} t={t} full />}
         {page === 'njoftimet' && <NoticesSection locale={locale} t={t} full />}
         {page === 'rreth' && <AboutSection locale={locale} t={t} full />}

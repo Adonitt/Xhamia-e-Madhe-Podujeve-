@@ -3,11 +3,13 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 // serverless bundlers include it alongside pdf.mjs.
 import 'pdfjs-dist/legacy/build/pdf.worker.mjs'
 import type { DailyPrayerTimes } from '../src/config'
+import { fridayDateOnOrAfter, fridayPrayerTimeFromDhuhr } from '../src/friday'
 
 export const BIK_YEAR = 2026
 export const BIK_PDF_URL = 'https://dituriaislame.com/wp-content/uploads/2026/01/takvimi2026vaktet.pdf'
 
-export type BikDayResponse = { schedule: DailyPrayerTimes; sourceUrl: string }
+export type BikFriday = { date: string; prayerTime: '12:00' | '13:00' }
+export type BikDayResponse = { schedule: DailyPrayerTimes; friday: BikFriday | null; sourceUrl: string }
 
 async function loadPdf() {
   const response = await fetch(BIK_PDF_URL, { signal: AbortSignal.timeout(12000) })
@@ -82,5 +84,14 @@ export async function getBikDay(date: string): Promise<DailyPrayerTimes> {
 }
 
 export async function getBikDate(date: string): Promise<BikDayResponse> {
-  return { schedule: await getBikDay(date), sourceUrl: BIK_PDF_URL }
+  const schedule = await getBikDay(date)
+  const fridayDate = fridayDateOnOrAfter(date)
+  if (fridayDate > `${BIK_YEAR}-12-31`) return { schedule, friday: null, sourceUrl: BIK_PDF_URL }
+  const fridaySchedule = fridayDate === date ? schedule : await getBikDay(fridayDate)
+  const prayerTime = fridayPrayerTimeFromDhuhr(fridaySchedule.begins.dhuhr)
+  return {
+    schedule,
+    friday: prayerTime ? { date: fridayDate, prayerTime } : null,
+    sourceUrl: BIK_PDF_URL,
+  }
 }

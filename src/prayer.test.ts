@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { mosqueConfig, type DailyPrayerTimes } from './config'
-import { formatCountdown, fridayPrayerTime, isFriday, isFridayDate, kosovoDateKey, nextPrayer, todaySchedule } from './prayer'
+import { formatCountdown, isFriday, isFridayDate, kosovoDateKey, nextPrayer, todaySchedule } from './prayer'
+import { fridayDateOnOrAfter, fridayPrayerTimeFromDhuhr } from './friday'
 
 const day = (date: string): DailyPrayerTimes => ({
   date,
@@ -18,11 +19,13 @@ describe('Kosovo prayer dates', () => {
     expect(isFridayDate('2026-10-16')).toBe(true)
   })
 
-  it('uses the fixed Friday prayer time across both clock changes', () => {
-    expect(fridayPrayerTime('2026-03-27')).toBe('12:00')
-    expect(fridayPrayerTime('2026-04-03')).toBe('13:00')
-    expect(fridayPrayerTime('2026-10-23')).toBe('13:00')
-    expect(fridayPrayerTime('2026-10-30')).toBe('12:00')
+  it('uses the next Friday and derives one time from its BIK Dhuhr entry', () => {
+    expect(fridayDateOnOrAfter('2026-10-13')).toBe('2026-10-16')
+    expect(fridayDateOnOrAfter('2026-10-16')).toBe('2026-10-16')
+    expect(fridayDateOnOrAfter('2026-12-31')).toBe('2027-01-01')
+    expect(fridayPrayerTimeFromDhuhr('11:24')).toBe('12:00')
+    expect(fridayPrayerTimeFromDhuhr('12:25')).toBe('13:00')
+    expect(fridayPrayerTimeFromDhuhr('10:59')).toBeNull()
   })
 
   it('shows Jumu’ah as the next prayer on Friday at its fixed time', () => {

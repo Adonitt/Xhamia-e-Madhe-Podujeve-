@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
 import { getBikDate, getBikDay } from './bik'
+import { fridayPrayerTimeFromDhuhr, isFridayDate } from '../src/friday'
 
 it('reads the BIK day without a city minute adjustment', async () => {
   const result = await getBikDate('2026-10-13')
@@ -8,7 +9,13 @@ it('reads the BIK day without a city minute adjustment', async () => {
     imsak: '05:08', fajrAdhan: '06:08', sunrise: '06:38',
   })
   expect(result.schedule).not.toHaveProperty('congregation')
-  expect(Object.keys(result).sort()).toEqual(['schedule', 'sourceUrl'])
+  expect(result.friday).toEqual({ date: '2026-10-16', prayerTime: '13:00' })
+  expect(Object.keys(result).sort()).toEqual(['friday', 'schedule', 'sourceUrl'])
+})
+
+it('uses the Friday Dhuhr entry for the single winter time', async () => {
+  expect((await getBikDate('2026-11-04')).friday).toEqual({ date: '2026-11-06', prayerTime: '12:00' })
+  expect((await getBikDate('2026-12-31')).friday).toBeNull()
 })
 
 it('reads every day of 2026, including the daylight saving change', async () => {
@@ -17,6 +24,7 @@ it('reads every day of 2026, including the daylight saving change', async () => 
     const schedule = await getBikDay(key)
     expect(schedule.date).toBe(key)
     expect(schedule.begins.fajr).toMatch(/^\d\d:\d\d$/)
+    if (isFridayDate(key)) expect(fridayPrayerTimeFromDhuhr(schedule.begins.dhuhr)).not.toBeNull()
   }
   expect((await getBikDay('2026-10-25')).begins.dhuhr).toBe('11:24')
 })

@@ -11,7 +11,7 @@ export function useBikData(date: string) {
     const controller = new AbortController()
     setData(null)
     setStatus('loading')
-    fetch(`/api/prayer-times?date=${encodeURIComponent(date)}`, { signal: controller.signal })
+    fetch(`/api/prayer-times?date=${encodeURIComponent(date)}&v=2`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error(`Prayer API returned ${response.status}`)
         return response.json() as Promise<BikDayResponse>

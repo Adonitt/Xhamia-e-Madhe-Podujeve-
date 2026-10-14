@@ -1,9 +1,10 @@
 import { mosqueConfig, type DailyPrayerTimes, type PrayerKey } from './config'
+import { fridayPrayerTimeFromDhuhr, isFridayDate } from './friday'
+
+export { isFridayDate } from './friday'
 
 const prayerOrder: PrayerKey[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
 const kosovoTimeZone = 'Europe/Belgrade'
-export const FRIDAY_SUMMER_TIME = '13:00'
-export const FRIDAY_WINTER_TIME = '12:00'
 export type PrayerEventKey = PrayerKey | 'jumuah'
 
 function partsAt(date: Date) {
@@ -32,16 +33,6 @@ export function todaySchedule(date: Date, schedules: DailyPrayerTimes[] = mosque
 
 export function isFriday(date: Date): boolean {
   return new Intl.DateTimeFormat('en-US', { timeZone: kosovoTimeZone, weekday: 'short' }).format(date) === 'Fri'
-}
-
-export function isFridayDate(dateKey: string): boolean {
-  return new Date(`${dateKey}T12:00:00Z`).getUTCDay() === 5
-}
-
-/** Fixed mosque prayer time, selected by Kosovo's clock for this date. */
-export function fridayPrayerTime(dateKey: string): typeof FRIDAY_SUMMER_TIME | typeof FRIDAY_WINTER_TIME {
-  const kosovoHourAtUtcNoon = partsAt(new Date(`${dateKey}T12:00:00Z`)).hour
-  return kosovoHourAtUtcNoon === 14 ? FRIDAY_SUMMER_TIME : FRIDAY_WINTER_TIME
 }
 
 function parseTime(time: string): { hours: number; minutes: number } | null {
@@ -78,15 +69,13 @@ export function nextPrayer(now: Date, schedules: DailyPrayerTimes[] = mosqueConf
   const nextDay = `${nextDayDate.getUTCFullYear()}-${String(nextDayDate.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDayDate.getUTCDate()).padStart(2, '0')}`
   const candidates = schedules
     .filter((schedule) => schedule.date === currentDay || schedule.date === nextDay)
-    .flatMap((schedule) => prayerOrder.map((prayerKey) => ({
-      schedule,
-      key: prayerKey === 'dhuhr' && isFridayDate(schedule.date) ? 'jumuah' as const : prayerKey,
-    })))
-    .map(({ schedule, key }) => ({
-      key,
-      begins: key === 'jumuah' ? fridayPrayerTime(schedule.date) : schedule.begins[key],
-      date: schedule.date,
-      timestamp: zonedTimeToUtc(schedule.date, key === 'jumuah' ? fridayPrayerTime(schedule.date) : schedule.begins[key]),
+    .flatMap((schedule) => prayerOrder.map((prayerKey) => {
+      const fridayTime = prayerKey === 'dhuhr' && isFridayDate(schedule.date)
+        ? fridayPrayerTimeFromDhuhr(schedule.begins.dhuhr)
+        : null
+      const key: PrayerEventKey = fridayTime ? 'jumuah' : prayerKey
+      const begins = fridayTime ?? schedule.begins[prayerKey]
+      return { key, begins, date: schedule.date, timestamp: zonedTimeToUtc(schedule.date, begins) }
     }))
     .filter((item): item is typeof item & { timestamp: number } => item.timestamp !== null && item.timestamp > now.getTime())
     .sort((a, b) => a.timestamp - b.timestamp)

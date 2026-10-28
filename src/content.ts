@@ -40,7 +40,7 @@ export function resolveRoute(pathname: string, search = ''): { locale: Locale; p
 const sq = {
   language: 'Shqip', otherLanguage: 'English', city: 'Podujevë · Kosovë',
   brandTag: 'PODUJEVË',
-  nav: { home: 'Ballina', orari: 'Orari', aktivitetet: 'Aktivitetet', njoftimet: 'Njoftimet', rreth: 'Rreth nesh', vizita: 'Vizita', kontribuo: 'Kontribuo' },
+  nav: { home: 'Ballina', orari: 'Orari', aktivitetet: 'Aktivitetet', njoftimet: 'Njoftimet', gallery: 'Galeria', rreth: 'Rreth nesh', vizita: 'Vizita', kontribuo: 'Kontribuo' },
   menu: 'Hap menynë', closeMenu: 'Mbyll menynë', skip: 'Kalo te përmbajtja',
   heroEyebrow: 'NJË SHTËPI PËR BESIMIN DHE BASHKËSINË',
   heroTitle: 'Xhamia e Madhe',
@@ -83,6 +83,8 @@ const sq = {
   noticeEyebrow: 'NJOFTIME', noticeTitle: 'Nga xhamia jonë',
   noticeText: 'Këtu do të publikohen njoftimet dhe datat e aktiviteteve të ardhshme.',
   noticeEmpty: 'Aktualisht nuk ka njoftime të datuara për publikim.',
+  galleryEyebrow: 'PAMJE NGA XHAMIA', galleryTitle: 'Galeria',
+  galleryIntro: 'Disa pamje nga hapësirat e Xhamisë së Madhe në Podujevë.',
   aboutEyebrow: 'RRETH NESH', aboutTitle: 'Një vend që na bashkon',
   aboutText: 'Xhamia e Madhe në Podujevë është funksionale dhe mirëpret besimtarët për pesë vaktet, xhumanë, mësime, ligjërata dhe vizita. Faqja jonë synon t’i bëjë informacionet e përditshme të lehta për t’u gjetur.',
   aboutMore: 'Njihuni me xhaminë',
@@ -113,7 +115,7 @@ const sq = {
 
 const en: typeof sq = {
   language: 'English', otherLanguage: 'Shqip', city: 'Podujevë · Kosovo', brandTag: 'PODUJEVA',
-  nav: { home: 'Home', orari: 'Prayer times', aktivitetet: 'Programmes', njoftimet: 'Notices', rreth: 'About', vizita: 'Visit', kontribuo: 'Support' },
+  nav: { home: 'Home', orari: 'Prayer times', aktivitetet: 'Programmes', njoftimet: 'Notices', gallery: 'Gallery', rreth: 'About', vizita: 'Visit', kontribuo: 'Support' },
   menu: 'Open menu', closeMenu: 'Close menu', skip: 'Skip to content',
   heroEyebrow: 'A HOME FOR FAITH AND COMMUNITY',
   heroTitle: 'The Grand Mosque', heroCity: 'of Podujevë',
@@ -153,6 +155,8 @@ const en: typeof sq = {
   noticeEyebrow: 'NOTICES', noticeTitle: 'From our mosque',
   noticeText: 'Dated announcements and upcoming activities will be published here.',
   noticeEmpty: 'There are currently no dated notices to publish.',
+  galleryEyebrow: 'A LOOK INSIDE', galleryTitle: 'Gallery',
+  galleryIntro: 'A few views of the Grand Mosque in Podujevë.',
   aboutEyebrow: 'ABOUT US', aboutTitle: 'A place that brings us together',
   aboutText: 'The Grand Mosque in Podujevë is open and welcomes worshippers for the five daily prayers, Jumu’ah, classes, talks and visits. This website makes everyday information easy to find.',
   aboutMore: 'Get to know the mosque',

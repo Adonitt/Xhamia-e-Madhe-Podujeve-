@@ -7,6 +7,7 @@ import { formatCountdown, isFridayDate, kosovoDateKey, nextPrayer, type PrayerEv
 import { fridayDateOnOrAfter, fridayPrayerTimeFromDhuhr } from './friday'
 import { useBikData } from './useBikData'
 import type { BikFriday } from '../server/bik'
+import { heroPhotos, mosquePhotos } from './gallery'
 
 type Copy = typeof copy.sq
 const navPages: PageKey[] = ['orari', 'aktivitetet', 'njoftimet', 'rreth', 'vizita']
@@ -77,7 +78,7 @@ function formattedToday(now: Date, locale: Locale) {
 function Header({ locale, page, t }: { locale: Locale; page: PageKey; t: Copy }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
-  useEffect(() => setOpen(false), [location.pathname, location.search])
+  useEffect(() => setOpen(false), [location.pathname, location.search, location.hash])
   useEffect(() => {
     if (!open) return
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }
@@ -95,6 +96,7 @@ function Header({ locale, page, t }: { locale: Locale; page: PageKey; t: Copy })
         </Link>
         <nav id="main-navigation" className={open ? 'main-nav main-nav-open' : 'main-nav'} aria-label={locale === 'sq' ? 'Navigimi kryesor' : 'Main navigation'}>
           {navPages.map((key) => <Link key={key} className={page === key ? 'nav-link active' : 'nav-link'} to={pagePath(locale, key)} aria-current={page === key ? 'page' : undefined}>{t.nav[key]}</Link>)}
+          <Link className={location.hash === '#gallery' ? 'nav-link active' : 'nav-link'} to={`${pagePath(locale, 'home')}#gallery`}>{t.nav.gallery}</Link>
           <Link className="nav-donate mobile-only" to={pagePath(locale, 'kontribuo')}>{t.nav.kontribuo}</Link>
         </nav>
         <div className="header-actions">
@@ -130,7 +132,16 @@ function PrayerCard({ locale, t, now, schedules, status }: { locale: Locale; t: 
 }
 
 function Hero({ locale, t, now, schedules, status }: { locale: Locale; t: Copy; now: Date; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
+  const [activePhoto, setActivePhoto] = useState(0)
+  useEffect(() => {
+    if (heroPhotos.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const interval = window.setInterval(() => setActivePhoto((current) => (current + 1) % heroPhotos.length), 7000)
+    return () => window.clearInterval(interval)
+  }, [])
   return <section className="hero">
+    <div className="hero-background" aria-hidden="true">
+      {heroPhotos.map((photo, index) => <img key={photo.src} className={index === activePhoto ? 'hero-background-photo is-active' : 'hero-background-photo'} src={photo.src} alt="" />)}
+    </div>
     <div className="hero-pattern" aria-hidden="true" />
     <div className="container hero-grid">
       <div className="hero-copy">
@@ -143,7 +154,7 @@ function Hero({ locale, t, now, schedules, status }: { locale: Locale; t: Copy; 
         </div>
         <div className="hero-status"><span className="status-dot" />{t.heroCaption}</div>
       </div>
-      <div className="hero-visual">{mosqueConfig.heroPhotoUrl ? <img className="hero-photo" src={mosqueConfig.heroPhotoUrl} alt={locale === 'sq' ? 'Pamje e Xhamisë së Madhe në Podujevë' : 'The Grand Mosque in Podujevë'} /> : <ArchitectureArt />}<PrayerCard locale={locale} t={t} now={now} schedules={schedules} status={status} /></div>
+      <div className="hero-visual"><ArchitectureArt /><PrayerCard locale={locale} t={t} now={now} schedules={schedules} status={status} /></div>
     </div>
     <div className="hero-bottom"><div className="container"><span>{t.city}</span><span>{formattedToday(now, locale)}</span></div></div>
   </section>
@@ -151,6 +162,21 @@ function Hero({ locale, t, now, schedules, status }: { locale: Locale; t: Copy; 
 
 function SectionHeading({ eyebrow, title, intro, action }: { eyebrow: string; title: string; intro?: string; action?: React.ReactNode }) {
   return <div className="section-heading"><div><span className="eyebrow"><span className="small-diamond" />{eyebrow}</span><h2>{title}</h2>{intro && <p>{intro}</p>}</div>{action}</div>
+}
+
+function GallerySection({ locale, t }: { locale: Locale; t: Copy }) {
+  return <section className="section section-gallery" id="gallery">
+    <div className="container">
+      <SectionHeading eyebrow={t.galleryEyebrow} title={t.galleryTitle} intro={t.galleryIntro} />
+      <div className="gallery-grid">
+        {mosquePhotos.map((photo, index) => <a className="gallery-card" href={photo.src} target="_blank" rel="noopener noreferrer" key={photo.src} aria-label={`${photo.alt[locale]} — ${locale === 'sq' ? 'Hap fotografinë' : 'Open photo'}`}>
+          <img src={photo.src} alt={photo.alt[locale]} loading="lazy" />
+          <span className="gallery-caption"><span>{photo.alt[locale]}</span><span aria-hidden="true">↗</span></span>
+          <span className="sr-only">{index + 1} / {mosquePhotos.length}</span>
+        </a>)}
+      </div>
+    </div>
+  </section>
 }
 
 const prayerRows: Array<PrayerEventKey | 'imsak' | 'sunrise'> = ['imsak', 'fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
@@ -273,6 +299,11 @@ function SiteApp({ locale, page }: { locale: Locale; page: PageKey }) {
   const schedules = bikData ? [...mosqueConfig.prayerTimes, bikData.schedule] : mosqueConfig.prayerTimes
 
   useEffect(() => {
+    if (!location.hash) return
+    document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' })
+  }, [location.pathname, location.hash])
+
+  useEffect(() => {
     document.documentElement.lang = locale
     document.title = `${t.pageTitles[page]} · ${locale === 'sq' ? 'Xhamia e Madhe' : 'The Grand Mosque'} · Podujevë`
     document.querySelector('meta[name="description"]')?.setAttribute('content', t.pageDescriptions[page])
@@ -285,13 +316,13 @@ function SiteApp({ locale, page }: { locale: Locale; page: PageKey }) {
       alternate.dataset.i18n = 'true'
       document.head.appendChild(alternate)
     }
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    if (!location.hash) window.scrollTo({ top: 0, behavior: 'instant' })
   }, [locale, page, location.pathname, location.search, t])
 
   return <>
     <Header locale={locale} page={page} t={t} />
     <main id="main">
-      {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} friday={bikData?.friday ?? null} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
+      {page === 'home' ? <><Hero locale={locale} t={t} now={now} schedules={schedules} status={bikStatus} /><ScheduleSection locale={locale} t={t} now={now} date={todayKey} onDateChange={setSelectedDate} schedules={schedules} friday={bikData?.friday ?? null} status={bikStatus} sourceUrl={bikData?.sourceUrl} /><ProgrammeGrid locale={locale} t={t} /><NoticesSection locale={locale} t={t} /><GallerySection locale={locale} t={t} /><AboutSection locale={locale} t={t} /><DonationSection locale={locale} t={t} /><VisitSection locale={locale} t={t} /></> : <>
         <PageBanner t={t} page={page} />
         {page === 'orari' && <ScheduleSection locale={locale} t={t} now={now} date={selectedDate} onDateChange={setSelectedDate} schedules={schedules} friday={bikData?.friday ?? null} status={bikStatus} sourceUrl={bikData?.sourceUrl} full />}
         {page === 'aktivitetet' && <ProgrammeGrid locale={locale} t={t} full />}

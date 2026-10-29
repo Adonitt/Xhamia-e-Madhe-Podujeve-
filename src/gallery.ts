@@ -3,6 +3,8 @@ export type MosquePhoto = {
   alt: { sq: string; en: string }
   /** Show this photo in the automatically rotating home hero. */
   hero?: boolean
+  /** Use this photo as the featured image in the about section. */
+  about?: boolean
 }
 
 /**
@@ -10,6 +12,11 @@ export type MosquePhoto = {
  * Set hero: true for wide photos that should also rotate behind the home page.
  */
 export const mosquePhotos: MosquePhoto[] = [
+   {
+    src: '/assets/foto 1 jashte.jpeg',
+    alt: { sq: 'Pamje e jashtme e xhamisë', en: 'View of the mosque exterior' },
+    about: true,
+  },
   {
     src: '/assets/foto 1 brenda.jpeg',
     alt: { sq: 'Pamje e sallës së faljes', en: 'View of the prayer hall' },

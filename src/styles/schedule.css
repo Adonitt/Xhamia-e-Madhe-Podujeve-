@@ -1,0 +1,42 @@
+.section-schedule{background:#fbfaf6}
+.schedule-grid{display:grid;grid-template-columns:1.24fr .76fr;gap:42px;align-items:stretch}
+.date-selector{display:flex;align-items:center;justify-content:space-between;gap:25px;background:#f0ede5;border:1px solid #dfd9cd;border-radius:14px;padding:18px 22px;margin:-9px 0 37px}
+.date-selector label{display:block;color:#19343b;font-size:13px;font-weight:800;margin-bottom:3px}
+.date-selector span{display:block;color:#73807b;font-size:11px}
+.date-controls{display:flex;align-items:center;gap:8px}
+.date-controls button,.date-controls input{height:41px;border:1px solid #cfc7b9;border-radius:8px;background:#fbfaf7;color:#213b42}
+.date-controls button{min-width:40px;font-size:25px;line-height:1}
+.date-controls button:disabled{opacity:.4;cursor:not-allowed}
+.date-controls input{padding:0 12px;font-size:13px;font-weight:650;min-width:145px}
+.date-controls .today-control{padding:0 17px;background:#17343c;color:#f7f3ea;border-color:#17343c;font-size:12px;font-weight:750}
+.schedule-wrap{min-width:0}
+.schedule-date{font-size:12px;font-weight:700;color:#806542;text-transform:uppercase;letter-spacing:.11em;margin-bottom:17px}
+.table-scroll{overflow-x:auto}
+.schedule-table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+.schedule-table th,.schedule-table td{text-align:left;padding:16px 14px}
+.schedule-table th:first-child,.schedule-table td:first-child{padding-left:8px}
+.schedule-table th:last-child,.schedule-table td:last-child{text-align:right}
+.schedule-table thead{border-bottom:1px solid #cfd1ca;color:#6c7875}
+.schedule-table thead th{font-size:10px;letter-spacing:.17em;text-transform:uppercase;font-weight:800}
+.schedule-table tbody tr{border-bottom:1px solid #e7e6e0}
+.schedule-table tbody th{font-weight:650;white-space:nowrap}
+.schedule-table tbody td{color:#4c5b5e}
+.schedule-table tbody td:last-child{font-weight:750;color:#173d47}
+.row-adhan{display:block;color:#8a6c48;font-size:10px;font-weight:700;white-space:nowrap;margin-top:4px}
+.schedule-table .next-row{background:#e8eee9}
+.row-next-dot{display:inline-block;width:6px;height:6px;background:#ad8150;border-radius:50%;margin-left:9px;vertical-align:middle}
+.source-note{margin:17px 0 0;color:#74817f;font-size:11px;line-height:1.55}
+.fajr-note{margin:14px 0 0;padding:12px 14px;background:#f0eee6;border-left:2px solid #b59463;border-radius:0 6px 6px 0;font-size:11px;line-height:1.65;color:#556568}
+.fajr-note strong{color:#765a36}
+.friday-card{background:var(--ink);color:#f7f2e8;border-radius:16px;padding:29px 32px;min-height:365px;position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 15px 35px rgba(20,42,47,.08)}
+.friday-card:after{content:'';position:absolute;right:-125px;bottom:-160px;width:360px;height:360px;border:1px solid rgba(201,164,109,.22);border-radius:50%;box-shadow:0 0 0 45px rgba(201,164,109,.035),0 0 0 95px rgba(201,164,109,.025)}
+.friday-top,.friday-card h3,.friday-card p,.friday-date,.friday-single-time{position:relative;z-index:1}
+.friday-star{font-size:24px;color:#a7bdba}
+.friday-card h3{font-size:50px;line-height:1;margin:39px 0 18px}
+.friday-card p{font-size:13px;line-height:1.7;color:#becac6;max-width:335px;margin:10px 0 0}
+.friday-date{display:block;color:var(--bronze-light);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:18px}
+.friday-single-time{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;display:flex;flex-direction:column;gap:4px}
+.friday-single-time span{font-size:11px;color:#c1cfcc;text-transform:uppercase;letter-spacing:.11em}
+.friday-single-time strong{font-family:'Cormorant Garamond',Georgia,serif;font-size:64px;line-height:1;font-weight:500;color:var(--bronze-light)}
+.friday-unavailable{border-top:1px solid rgba(255,255,255,.2);padding-top:23px}
+.source-link{margin-top:27px}

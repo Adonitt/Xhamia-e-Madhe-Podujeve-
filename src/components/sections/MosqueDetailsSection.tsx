@@ -9,6 +9,7 @@ export function MosqueDetailsSection({ locale, t }: { locale: 'sq' | 'en'; t: Co
     { number: '01', title: t.mosquePrayerTitle, text: t.mosquePrayerText },
     { number: '02', title: t.mosqueFridayTitle, text: t.mosqueFridayText },
     { number: '03', title: t.mosqueLearningTitle, text: t.mosqueLearningText },
+    { number: '04', title: t.mosqueSeparateSpacesTitle, text: t.mosqueSeparateSpacesText },
   ]
 
   return <section className="section section-mosque-details">

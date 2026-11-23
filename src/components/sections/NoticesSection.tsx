@@ -17,7 +17,7 @@ function NoticeCard({ notice, locale, t }: { notice?: MosqueNotice; locale: Loca
         <span>{mosqueName}</span>
       </div>
       {notice
-        ? <time dateTime={notice.date}>{formattedToday(new Date(`${notice.date}T12:00:00Z`), locale)}</time>
+        ? <div className="notice-published"><span>{t.noticeDateLabel}</span><time dateTime={notice.date}>{formattedToday(new Date(`${notice.date}T12:00:00Z`), locale)}</time></div>
         : <span className="notice-sample-label">{t.noticeSampleLabel}</span>}
     </div>
     <h3>{notice ? notice.title[locale] : t.noticeSampleTitle}</h3>

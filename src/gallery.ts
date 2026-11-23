@@ -15,6 +15,11 @@ export const mosquePhotos: MosquePhoto[] = [
    {
     src: '/assets/foto 1 jashte.jpeg',
     alt: { sq: 'Pamje e jashtme e xhamisë', en: 'View of the mosque exterior' },
+  },
+  {
+    src: '/assets/foto 2 jashte.jpeg',
+    alt: { sq: 'Pamje e jashtme e Xhamisë së Madhe në Podujevë', en: 'Exterior view of the Grand Mosque in Podujevë' },
+    hero: true,
     about: true,
   },
   {

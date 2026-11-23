@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { pagePath, type Locale } from '../../content'
-import { mosqueConfig, type DailyPrayerTimes } from '../../config'
-import { isFridayDate, kosovoDateKey, nextPrayer, type PrayerEventKey } from '../../prayer'
+import { mosqueConfig, type DailyPrayerTimes, type PrayerKey } from '../../config'
+import { formatCountdown, isFridayDate, kosovoDateKey, nextPrayer } from '../../prayer'
 import { fridayDateOnOrAfter, fridayPrayerTimeFromDhuhr } from '../../friday'
 import type { BikFriday } from '../../../server/bik'
 import type { Copy } from '../../types'
@@ -9,22 +9,44 @@ import { formattedToday } from '../../utils/date'
 import { ArrowIcon } from '../shared/Icons'
 import { SectionHeading } from '../shared/SectionHeading'
 
-const prayerRows: Array<PrayerEventKey | 'imsak' | 'sunrise'> = ['imsak', 'fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
+const prayerKeys: PrayerKey[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
 
 function PrayerTable({ locale, t, now, date, schedules, status }: { locale: Locale; t: Copy; now: Date; date: string; schedules: DailyPrayerTimes[]; status: 'loading' | 'ready' | 'error' }) {
   const schedule = schedules.find((item) => item.date === date)
   const next = date === kosovoDateKey(now) ? nextPrayer(now, schedules) : null
   const fridayTime = schedule && isFridayDate(date) ? fridayPrayerTimeFromDhuhr(schedule.begins.dhuhr) : null
-  const rows = fridayTime ? [...prayerRows.slice(0, 4), 'jumuah' as const, ...prayerRows.slice(4)] : prayerRows
+  const nextName = next?.key === 'jumuah' ? t.fridayTitle : next ? t.prayerNames[next.key] : ''
+  const additionalTimes = [
+    ...(schedule?.imsak ? [{ label: t.imsak, time: schedule.imsak }] : []),
+    ...(schedule?.sunrise ? [{ label: t.prayerNames.sunrise, time: schedule.sunrise }] : []),
+    ...(fridayTime ? [{ label: t.fridayTitle, time: fridayTime }] : []),
+  ]
+
   return <div className="schedule-wrap">
     <div className="schedule-date">{formattedToday(new Date(`${date}T12:00:00Z`), locale)}</div>
-    <div className="table-scroll"><table className="schedule-table"><caption className="sr-only">{t.scheduleHeading}</caption><thead><tr><th scope="col">{locale === 'sq' ? 'Vakti' : 'Time'}</th><th scope="col">{t.starts}</th></tr></thead><tbody>
-      {rows.map((key) => {
-        const active = next?.date === schedule?.date && next?.key === key
-        const begins = key === 'imsak' ? schedule?.imsak : key === 'sunrise' ? schedule?.sunrise : key === 'jumuah' ? fridayTime : schedule?.begins[key]
-        return <tr className={active ? 'next-row' : ''} key={key}><th scope="row">{key === 'imsak' ? t.imsak : key === 'jumuah' ? t.fridayTitle : t.prayerNames[key]}{active && <span className="row-next-dot" aria-label={t.nextPrayer} />}</th><td>{begins ?? '—'}{key === 'fajr' && schedule?.fajrAdhan && <small className="row-adhan">{t.adhan} {schedule.fajrAdhan}</small>}</td></tr>
+    {date === kosovoDateKey(now) && <div className="next-prayer-feature">
+      <div className="next-prayer-copy">
+        <span className="next-prayer-label">{t.nextPrayer}</span>
+        {next
+          ? <><strong className="next-prayer-name">{nextName}</strong><span className="next-prayer-remaining">{t.remaining}</span><strong className="next-prayer-countdown">{formatCountdown(next.remainingSeconds)}</strong></>
+          : <><strong className="next-prayer-name">{status === 'loading' ? t.scheduleLoading : t.dayComplete}</strong><span className="next-prayer-remaining">{status === 'loading' ? t.schedulePendingText : t.dayCompleteText}</span></>}
+      </div>
+      {next && <div className="next-prayer-time"><span>{t.starts}</span><time dateTime={next.begins}>{next.begins}</time></div>}
+    </div>}
+    <div className="prayer-time-grid" aria-label={t.scheduleHeading}>
+      {prayerKeys.map((key) => {
+        const active = Boolean(next && next.date === date && (next.key === key || (key === 'dhuhr' && next.key === 'jumuah')))
+        return <article className={active ? 'prayer-time-card is-next' : 'prayer-time-card'} key={key}>
+          {active && <span className="prayer-time-next-label">{t.nextPrayer}</span>}
+          <h3>{t.prayerNames[key]}</h3>
+          <time dateTime={schedule?.begins[key]}>{schedule?.begins[key] ?? '—:—'}</time>
+          {key === 'fajr' && schedule?.fajrAdhan && <span className="prayer-time-adhan">{t.adhan} {schedule.fajrAdhan}</span>}
+        </article>
       })}
-    </tbody></table></div>
+    </div>
+    {additionalTimes.length > 0 && <div className="prayer-additional-times">
+      {additionalTimes.map((item) => <div className="prayer-additional-time" key={item.label}><span>{item.label}</span><time>{item.time}</time></div>)}
+    </div>}
     <p className="source-note">{schedule ? (schedule.source === 'bik' ? t.bikSourceNote : `${t.verified}: ${schedule.verifiedBy}`) : status === 'loading' ? t.scheduleLoading : t.sourceNote}</p>
     {schedule?.imsak && <p className="fajr-note">{t.fajrRule}</p>}
   </div>

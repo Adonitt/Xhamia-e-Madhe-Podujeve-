@@ -24,7 +24,7 @@ type HomePageProps = {
 
 export function HomePage({ locale, t, now, today, schedules, friday, status, sourceUrl, onDateChange }: HomePageProps) {
   return <>
-    <Hero locale={locale} t={t} now={now} schedules={schedules} status={status} />
+    <Hero locale={locale} t={t} now={now} />
     <ScheduleSection
       locale={locale}
       t={t}
